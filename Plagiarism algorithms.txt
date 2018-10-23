@@ -1,0 +1,143 @@
+==================================================================================================================
+Fingerprinting
+==================================================================================================================
+
+Tokenizing -> Filtering -> Stemming -> winnowing + Rabin-Karp algorithm -> suffix-tree algorithm to find maximal matches in just that pair of documents
+
+http://www.ijstr.org/final-print/july2017/K-gram-As-A-Determinant-Of-Plagiarism-Level-In-Rabin-karp-Algorithm.pdf
+
+Tokenizing:
+
+
+Stemming: (https://tartarus.org/martin/PorterStemmer/)
+	turning words with a prefix/suffix into their root words
+
+Winnowing: (http://theory.stanford.edu/~aiken/publications/papers/sigmod03.pdf)
+
+	Given a set of documents, we want the find substring matches
+	between them that satisfy two properties:
+		1. If there is a substring match at least as long as the guarantee threshold, t, then this match is detected
+		2. We do not detect any matches shorter than the noise threshold, k
+
+	The larger k is, the more confident that the matches are not coincidental. 
+	The larger k is, the less sensitive to the reordering of document contents.
+	K should be the minimum value required to eliminate coicidental matches.
+	
+	w = t - k + 1
+		
+	(Winnowing)
+	In each window select the minimum hash value. If there is more than one hash with the minimum value, select the rightmost occurrence. 
+	Now save all selected hashes as the fingerprints of the document.
+	
+	(ROBUST WINNOWING)
+	In each window select the minimum hash value. If possible break ties by selecting the same hash as the window one position to the left. 
+	If not, select the rightmost minimal hash. Save all selected hashes as the fingerprints of the document.
+
+	(LOCAL ALGORITHMS) 
+	Let S be a selection function taking a w-tuple of hashes and returning an integer between zero and w-1, inclusive. 
+	A fingerprinting algorithm is local with selection function S, if, for every window hi,...,hi+w-1, the hash at position i+S(hi,...,hi+w-1) 
+	is selected as a fingerprint.
+
+	
+	Values to try:
+		k-gram length: 50
+		k = 50
+		w = 100
+		t = 151
+	
+
+	NOTE: To implement robust winnowing the = comparison on line marked (*) should be replaced by <
+
+	Code:	
+		void winnow(int w /*window size*/) {
+
+			// circular buffer implementing window of size w
+			hash_t h[w];
+			for (int i=0; i<w; ++i) 
+				h[i] = INT_MAX;
+			int r = 0; // window right end
+			int min = 0; // index of minimum hash
+
+			// At the end of each iteration, min holds the
+			// position of the rightmost minimal hash in the
+			// current window. record(x) is called only the
+			// first time an instance of x is selected as the
+			// rightmost minimal hash of a window.
+			while (true) {
+				r = (r + 1) % w; // shift the window by one
+				h[r] = next_hash(); // and add one new hash
+				if (min == r) {
+
+					// The previous minimum is no longer in this
+					// window. Scan h leftward starting from r
+					// for the rightmost minimal hash. Note min
+					// starts with the index of the rightmost
+					// hash.
+					for(int i=(r-1)%w; i!=r; i=(i-1+w)%w)
+						if (h[i] < h[min]) 
+							min = i;
+					record(h[min], global_pos(min, r, w));
+
+				} else {
+
+					// Otherwise, the previous minimum is still in
+					// this window. Compare against the new value
+					// and update min if necessary.
+					if (h[r] <= h[min]) { // (*)
+						min = r;
+						record(h[min], global_pos(min, r, w));
+					}
+				}
+			}
+		}
+
+
+
+
+
+==================================================================================================================
+Bag Of Words
+==================================================================================================================
+(http://iopscience.iop.org/article/10.1088/1742-6596/978/1/012120/pdf)
+(http://www.indjst.org/index.php/indjst/article/view/105232/77307)
+
+Text Preprocessing -> Tokenizing -> Stemming -> Keyword extraction -> Keyword weighing -> cosine similarity
+
+
+Text Preprocessing:
+	Remove punctuation
+	Set to lower case
+
+
+Tokenizing:
+	Remove stop words	
+
+
+Stemming: (https://tartarus.org/martin/PorterStemmer/)
+	turning words with a prefix/suffix into their root words
+
+
+
+Keyword Extraction:
+	TF-IDF
+	PatTree
+	Weighted Weighted TF-IDF
+
+
+Keyword Weighing:	
+	Number of appearances of a term in the text
+	
+	weight = # of appearances / # of appearances for term with max # of appearances
+
+
+Cosine similarity:
+	Use the formula on the SAME keywrods from both documents (their keyword intersection)
+
+
+
+
+
+
+
+
+
