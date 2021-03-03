@@ -14,7 +14,7 @@
     "keyword-extractor": "0.0.15",
     "levenshtein-edit-distance": "^2.0.2",
     "morgan": "~1.9.0",
-    "pug": "2.0.0-beta11",
+    "pug": "3.0.1",
     "retext": "^5.0.0",
     "retext-keywords": "^4.0.1",
     "stemmer": "^1.0.2",
